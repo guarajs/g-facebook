@@ -1,0 +1,92 @@
+<polymer-element name="g-facebook" attributes="appId auto">
+    <template>
+        <p>Status: {{label}}</p>
+        <button class="btn btn-primary" on-click="{{ login }}">Login</button>
+    </template>
+    <script>
+        (function(){
+
+            var _insertFacebookScript = function(id) {
+                if(typeof(FB) == 'undefined')
+                {
+                    var tag = 'script';
+                    if(document.getElementById(id))
+                    {
+                        return;
+                    }
+                    var fjs = document.getElementsByTagName(tag)[0];
+                    var js  = document.createElement(tag);
+                    js.id   = id;
+                    js.src  = "//connect.facebook.net/en_US/sdk.js";
+                    fjs.parentNode.insertBefore(js, fjs);
+                }
+            };
+
+            var _init = function(id, cookie, xfbml, version) {
+                FB.init({
+                    appId   : id,
+                    cookie  : cookie,
+                    xfbml   : xfbml,
+                    version : version
+                });
+
+                FB.getLoginStatus(function(response) {
+                    _handleStatus(response);
+                });
+            };
+
+            var _handleStatus = function(response) {
+                console.log(response);
+                _module.label = response.status;
+
+                if(response.status === 'connected')
+                {
+                    // Logged into your app and Facebook.
+                    _whenLoggedIn();
+                }
+                else if(response.status === 'not_authorized')
+                {
+                  // The person is logged into Facebook, but not your app.
+                }
+                else
+                {
+                  // The person is not logged into Facebook, so we're not sure if
+                  // they are logged into this app or not.
+                }
+            };
+
+            var _module = {
+                label: 'na',
+                scopes: 'public_profile, email',
+                fields: '?picture'
+                appId: '',
+                cookie: true,
+                xfbml: true,
+                version: 'v2.2',
+
+                ready: function() {
+                    var $this = this;
+                    window.fbAsyncInit = function() {
+                        _init($this.appId, $this.cookie, $this.xfbml, $this.version);
+                    };
+                    _insertFacebookScript('facebook-jssdk');
+                },
+
+                login: function() {
+                    var $this = this;
+                    FB.login(function(response) {
+                        _handleStatus(response);
+                    }, {scope: $this.scopes});
+                }
+            };
+
+            var _whenLoggedIn = function() {
+                FB.api('/me', function(response) {
+                    console.log(JSON.stringify(response));
+                });
+            };
+
+            Polymer('g-facebook', _module);
+        }());
+    </script>
+</polymer-element>
