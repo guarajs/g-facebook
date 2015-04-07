@@ -1,4 +1,4 @@
-<polymer-element name="g-facebook" attributes="appId">
+<polymer-element name="g-facebook" attributes="appId scopes version status">
     <template>
         <button class="btn btn-primary" on-click="{{ buttonClicked }}">{{ label }}</button>
     </template>
@@ -6,6 +6,8 @@
         (function(){
 
             var _me = null;
+
+            var _module = null;
 
             var _insertFacebookScript = function(id) {
                 if(typeof(FB) == 'undefined')
@@ -40,7 +42,7 @@
                 _insertFacebookScript('facebook-jssdk');
             };
 
-            var _handleStatus = function(response) {
+            var _handleStatus = function(response, handler) {
                 //console.log(response);
 
                 if(response.status === 'connected')
@@ -51,34 +53,42 @@
                 {
                     _whenLoggedOff(response);
                 }
+
+                if(handler)
+                {
+                    handler(response);
+                }
             };
 
             var _whenLoggedIn = function(data) {
                 _module.label = 'Logout';
                 FB.api('/me', function(response) {
-                    console.log(response);
                     _me = response;
+                    _module.status = JSON.stringify(_me);
                 });
             };
 
             var _whenLoggedOff = function(data) {
                 _module.label = 'Login';
                 _me = null;
+                _module.status = '';
             };
 
-            var _module = {
-                label: 'Login',
-                scopes: 'public_profile, email',
-                appId: null,
-                cookie: true,
-                xfbml: true,
-                version: 'v2.2',
+            Polymer('g-facebook', {
+                status  : '',
+                label   : 'Login',
+                scopes  : 'public_profile, email',
+                appId   : null,
+                cookie  : true,
+                xfbml   : true,
+                version : 'v2.2',
 
                 ready: function() {
                     if(this.appId)
                     {
                         _init(this.appId, this.cookie, this.xfbml, this.version);
                     }
+                    _module = this;
                 },
 
                 appIdChanged: function(previous, value) {
@@ -96,25 +106,23 @@
                     }
                 },
 
-                login: function() {
+                login: function(handler) {
                     var $this = this;
                     FB.login(function(response) {
-                        _handleStatus(response);
+                        _handleStatus(response, handler);
                     }, {scope: $this.scopes});
                 },
 
-                logout: function() {
+                logout: function(handler) {
                     FB.logout(function(response){
-                        _handleStatus(response);
+                        _handleStatus(response, handler);
                     });
                 },
 
                 me: function() {
                     return _me;
                 },
-            };
-
-            Polymer('g-facebook', _module);
+            });
         }());
     </script>
 </polymer-element>

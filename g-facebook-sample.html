@@ -7,19 +7,14 @@
             <dt>AppId:</dt>
             <dd><input type="text" class="form-control" value="{{ appId }}" placeholder="425441460914202" />
             <dt>Me:</dt>
-            <dd>{{ me }}</dd>
-            <dt></dt>
-            <dd><button class="btn btn-primary" on-click="{{ getMe }}">call me()</button></dd>
+            <dd>{{ status }}</dd>
             <dt>Button</dt>
-			<dd><g-facebook id="facebook" appId="425441460914202"></g-facebook></dd>
+			<dd><g-facebook id="facebook" appId="{{ appId }}" status="{{ status }}"></g-facebook></dd>
         </dl>
     </template>
     <script>
         Polymer({
-            getMe: function() {
-                var me = this.$.facebook.me();
-                this.me = JSON.stringify(me);
-            }
+            status: null,
         });
     </script>
 </polymer-element>
