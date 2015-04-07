@@ -1,10 +1,11 @@
-<polymer-element name="g-facebook" attributes="appId auto">
+<polymer-element name="g-facebook" attributes="appId">
     <template>
-        <p>Status: {{label}}</p>
-        <button class="btn btn-primary" on-click="{{ login }}">Login</button>
+        <button class="btn btn-primary" on-click="{{ buttonClicked }}">{{ label }}</button>
     </template>
     <script>
         (function(){
+
+            var _me = null;
 
             var _insertFacebookScript = function(id) {
                 if(typeof(FB) == 'undefined')
@@ -23,53 +24,76 @@
             };
 
             var _init = function(id, cookie, xfbml, version) {
-                FB.init({
-                    appId   : id,
-                    cookie  : cookie,
-                    xfbml   : xfbml,
-                    version : version
-                });
+                window.fbAsyncInit = function() {
+                    FB.init({
+                        appId   : id,
+                        cookie  : cookie,
+                        xfbml   : xfbml,
+                        version : version
+                    });
 
-                FB.getLoginStatus(function(response) {
-                    _handleStatus(response);
-                });
+                    FB.getLoginStatus(function(response) {
+                        _handleStatus(response);
+                    });
+                };
+
+                _insertFacebookScript('facebook-jssdk');
             };
 
             var _handleStatus = function(response) {
-                console.log(response);
-                _module.label = response.status;
+                //console.log(response);
 
                 if(response.status === 'connected')
                 {
-                    // Logged into your app and Facebook.
-                    _whenLoggedIn();
-                }
-                else if(response.status === 'not_authorized')
-                {
-                  // The person is logged into Facebook, but not your app.
+                    _whenLoggedIn(response);
                 }
                 else
                 {
-                  // The person is not logged into Facebook, so we're not sure if
-                  // they are logged into this app or not.
+                    _whenLoggedOff(response);
                 }
             };
 
+            var _whenLoggedIn = function(data) {
+                _module.label = 'Logout';
+                FB.api('/me', function(response) {
+                    console.log(response);
+                    _me = response;
+                });
+            };
+
+            var _whenLoggedOff = function(data) {
+                _module.label = 'Login';
+                _me = null;
+            };
+
             var _module = {
-                label: 'na',
+                label: 'Login',
                 scopes: 'public_profile, email',
-                fields: '?picture'
-                appId: '',
+                appId: null,
                 cookie: true,
                 xfbml: true,
                 version: 'v2.2',
 
                 ready: function() {
-                    var $this = this;
-                    window.fbAsyncInit = function() {
-                        _init($this.appId, $this.cookie, $this.xfbml, $this.version);
-                    };
-                    _insertFacebookScript('facebook-jssdk');
+                    if(this.appId)
+                    {
+                        _init(this.appId, this.cookie, this.xfbml, this.version);
+                    }
+                },
+
+                appIdChanged: function(previous, value) {
+                    _init(this.appId, this.cookie, this.xfbml, this.version);
+                },
+
+                buttonClicked: function() {
+                    if(_me)
+                    {
+                        this.logout();
+                    }
+                    else
+                    {
+                        this.login();
+                    }
                 },
 
                 login: function() {
@@ -77,13 +101,17 @@
                     FB.login(function(response) {
                         _handleStatus(response);
                     }, {scope: $this.scopes});
-                }
-            };
+                },
 
-            var _whenLoggedIn = function() {
-                FB.api('/me', function(response) {
-                    console.log(JSON.stringify(response));
-                });
+                logout: function() {
+                    FB.logout(function(response){
+                        _handleStatus(response);
+                    });
+                },
+
+                me: function() {
+                    return _me;
+                },
             };
 
             Polymer('g-facebook', _module);

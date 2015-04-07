@@ -1,0 +1,25 @@
+<link rel="import" src="g-facebook.html">
+
+<polymer-element name="g-facebook-sample">
+    <template>
+        <link rel="stylesheet" href="../guara/guara.css">
+        <dl class="dl-horizontal" style="margin: 30px 0px;">
+            <dt>AppId:</dt>
+            <dd><input type="text" class="form-control" value="{{ appId }}" placeholder="425441460914202" />
+            <dt>Me:</dt>
+            <dd>{{ me }}</dd>
+            <dt></dt>
+            <dd><button class="btn btn-primary" on-click="{{ getMe }}">call me()</button></dd>
+            <dt>Button</dt>
+			<dd><g-facebook id="facebook" appId="425441460914202"></g-facebook></dd>
+        </dl>
+    </template>
+    <script>
+        Polymer({
+            getMe: function() {
+                var me = this.$.facebook.me();
+                this.me = JSON.stringify(me);
+            }
+        });
+    </script>
+</polymer-element>
