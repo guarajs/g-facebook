@@ -1,4 +1,4 @@
-<polymer-element name="g-facebook" attributes="appId scopes version status">
+<polymer-element name="g-facebook" attributes="auto appId scopes version status">
     <template>
         <button class="btn btn-primary" on-click="{{ buttonClicked }}">{{ label }}</button>
     </template>
@@ -75,6 +75,7 @@
             };
 
             Polymer('g-facebook', {
+                auto    : true,
                 status  : '',
                 label   : 'Login',
                 scopes  : 'public_profile, email',
@@ -84,7 +85,7 @@
                 version : 'v2.2',
 
                 ready: function() {
-                    if(this.appId)
+                    if(this.appId && this.auto)
                     {
                         _init(this.appId, this.cookie, this.xfbml, this.version);
                     }
